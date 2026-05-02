@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>XonUsta — Uyga Usta Chaqirish</title>
+    <meta name="description"
+        content="Eng yaqin ustani toping va uyingizga chaqiring. Yandex Taxi kabi real-time kuzatish.">
+
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- App CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- ===== SPLASH SCREEN ===== -->
+    <div id="splashScreen" class="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo">
+                <div class="splash-icon">
+                    <div class="splash-circle">
+                        <span class="tool-icon">🔧</span>
+                    </div>
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring delay-1"></div>
+                </div>
+                <h1 class="splash-title">XonUsta</h1>
+                <p class="splash-subtitle">Uyga usta chaqiring — bir tugmada</p>
+            </div>
+            <div class="splash-loader">
+                <div class="loader-bar"></div>
+            </div>
+        </div>
+        <div class="splash-wave">
+            <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+                <path d="M0,60 C360,120 1080,0 1440,60 L1440,120 L0,120 Z" fill="white" />
+            </svg>
+        </div>
+    </div>
+
+    <!-- ===== MAIN APP ===== -->
+    <div id="app" class="app hidden">
+
+        <!-- ===== MAP CONTAINER ===== -->
+        <div id="mapContainer" class="map-container">
+            <div id="map" class="map"></div>
+
+            <!-- Map Overlay Controls -->
+            <div class="map-overlay-top">
+                <button id="btnMenu" class="map-btn menu-btn" onclick="toggleSidebar()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="15" y2="12" />
+                        <line x1="3" y1="18" x2="18" y2="18" />
+                    </svg>
+                </button>
+                <div class="search-bar" onclick="showSearch()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <span>Usta yoki xizmat izlash...</span>
+                </div>
+            </div>
+
+            <!-- My Location Button -->
+            <button id="btnMyLocation" class="map-btn location-btn" onclick="goToMyLocation()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- ===== BOTTOM SHEET ===== -->
+        <div id="bottomSheet" class="bottom-sheet">
+            <div class="sheet-handle" id="sheetHandle">
+                <div class="handle-bar"></div>
+            </div>
+
+            <!-- Categories View -->
+            <div id="viewCategories" class="sheet-view active">
+                <div class="greeting-section">
+                    <h2 class="greeting-text">Assalomu alaykum! 👋</h2>
+                    <p class="greeting-sub">Qanday usta kerak bugun?</p>
+                </div>
+                <div class="categories-grid" id="categoriesGrid"></div>
+                <div class="quick-actions">
+                    <button class="quick-btn primary-quick" onclick="showNearestMaster()">
+                        <span class="quick-icon">⚡</span>
+                        <div class="quick-text">
+                            <span class="quick-title">Eng yaqin usta</span>
+                            <span class="quick-sub">Tezkor chaqirish</span>
+                        </div>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <button class="quick-btn" onclick="showHistory()">
+                        <span class="quick-icon">📋</span>
+                        <div class="quick-text">
+                            <span class="quick-title">Buyurtmalar</span>
+                            <span class="quick-sub">Tarix</span>
+                        </div>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Masters List View -->
+            <div id="viewMasters" class="sheet-view">
+                <div class="view-header">
+                    <button class="back-btn" onclick="showView('viewCategories')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <h2 class="sheet-title" id="mastersTitle">Ustalar</h2>
+                    <div class="filter-badge" id="filterBadge">3 ta</div>
+                </div>
+                <div class="masters-list" id="mastersList"></div>
+            </div>
+
+            <!-- Master Profile View -->
+            <div id="viewProfile" class="sheet-view">
+                <div class="view-header">
+                    <button class="back-btn" onclick="goBackFromProfile()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <h2 class="sheet-title">Usta haqida</h2>
+                </div>
+                <div id="profileContent" class="profile-content"></div>
+            </div>
+
+            <!-- Order View -->
+            <div id="viewOrder" class="sheet-view">
+                <div class="view-header">
+                    <button class="back-btn" onclick="showView('viewProfile')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <h2 class="sheet-title">Buyurtma berish</h2>
+                </div>
+                <div id="orderContent" class="order-content">
+                    <div class="order-master-info" id="orderMasterInfo"></div>
+                    <div class="order-form">
+                        <div class="form-group">
+                            <label>📝 Muammo tavsifi</label>
+                            <textarea id="orderDescription" placeholder="Masalan: Kran oqyapti, oshxonada..."
+                                rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>📍 Manzil</label>
+                            <div class="address-input">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z" />
+                                    <circle cx="12" cy="10" r="3" />
+                                </svg>
+                                <input type="text" id="orderAddress" placeholder="Manzilingizni kiriting">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>⏰ Qachon kerak?</label>
+                            <div class="time-options">
+                                <button class="time-btn active" data-time="now" onclick="selectTime(this)">🔴
+                                    Hozir</button>
+                                <button class="time-btn" data-time="1h" onclick="selectTime(this)">⏱ 1 soat</button>
+                                <button class="time-btn" data-time="today" onclick="selectTime(this)">📅 Bugun</button>
+                                <button class="time-btn" data-time="schedule" onclick="selectTime(this)">📆
+                                    Boshqa</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="order-submit-btn" onclick="submitOrder()">
+                        <span>Usta chaqirish</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tracking View -->
+            <div id="viewTracking" class="sheet-view">
+                <div class="tracking-content">
+                    <div class="tracking-status" id="trackingStatus">
+                        <div class="status-pulse"></div>
+                        <div class="status-info">
+                            <span class="status-label" id="trackStatusLabel">Usta izlanmoqda...</span>
+                            <span class="status-eta" id="trackStatusEta"></span>
+                        </div>
+                    </div>
+                    <div class="tracking-progress" id="trackingProgress">
+                        <div class="progress-steps">
+                            <div class="step active" data-step="1">
+                                <div class="step-dot"></div>
+                                <span>Qidiruv</span>
+                            </div>
+                            <div class="step" data-step="2">
+                                <div class="step-dot"></div>
+                                <span>Qabul qildi</span>
+                            </div>
+                            <div class="step" data-step="3">
+                                <div class="step-dot"></div>
+                                <span>Yo'lda</span>
+                            </div>
+                            <div class="step" data-step="4">
+                                <div class="step-dot"></div>
+                                <span>Yetib keldi</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tracking-master-card" id="trackingMasterCard" style="display:none"></div>
+                    <div class="tracking-actions" id="trackingActions" style="display:none">
+                        <button class="track-action-btn call-btn" onclick="callMaster()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
+                            </svg>
+                            <span>Qo'ng'iroq</span>
+                        </button>
+                        <button class="track-action-btn msg-btn" onclick="messageMaster()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+                            </svg>
+                            <span>Xabar</span>
+                        </button>
+                        <button class="track-action-btn cancel-btn" onclick="cancelOrder()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                            </svg>
+                            <span>Bekor</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div id="viewHistory" class="sheet-view">
+                <div class="view-header">
+                    <button class="back-btn" onclick="showView('viewCategories')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <h2 class="sheet-title">Buyurtmalar tarixi</h2>
+                </div>
+                <div id="historyContent" class="history-content">
+                    <div class="empty-state">
+                        <div class="empty-illustration">📋</div>
+                        <p>Hali buyurtmalar yo'q</p>
+                        <span class="empty-sub">Birinchi buyurtmangizni bering!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SIDEBAR ===== -->
+        <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+        <div id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-avatar">👤</div>
+                <div class="sidebar-user">
+                    <span class="sidebar-name" id="userName">Foydalanuvchi</span>
+                    <span class="sidebar-phone" id="userPhone">+998 ...</span>
+                </div>
+                <button class="sidebar-close" onclick="toggleSidebar()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="nav-item active" onclick="navigateTo('home')">
+                    <span class="nav-icon">🏠</span>
+                    <span>Bosh sahifa</span>
+                </a>
+                <a class="nav-item" onclick="navigateTo('history')">
+                    <span class="nav-icon">📋</span>
+                    <span>Buyurtmalar tarixi</span>
+                </a>
+                <a class="nav-item" onclick="navigateTo('favorites')">
+                    <span class="nav-icon">⭐</span>
+                    <span>Sevimli ustalar</span>
+                </a>
+                <a class="nav-item" onclick="navigateTo('settings')">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Sozlamalar</span>
+                </a>
+                <div class="nav-divider"></div>
+                <a class="nav-item" onclick="navigateTo('support')">
+                    <span class="nav-icon">💬</span>
+                    <span>Yordam</span>
+                </a>
+                <a class="nav-item" onclick="navigateTo('about')">
+                    <span class="nav-icon">ℹ️</span>
+                    <span>Ilova haqida</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <span class="version">XonUsta v1.0</span>
+            </div>
+        </div>
+
+        <!-- ===== SEARCH MODAL ===== -->
+        <div id="searchModal" class="search-modal">
+            <div class="search-modal-header">
+                <button class="back-btn" onclick="hideSearch()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <input type="text" id="searchInput" class="search-input" placeholder="Xizmat yoki manzil izlang..."
+                    oninput="handleSearch(this.value)">
+            </div>
+            <div id="searchResults" class="search-results">
+                <div class="search-suggestions">
+                    <p class="search-label">Ommabop xizmatlar</p>
+                    <div class="suggestion-chips">
+                        <button class="chip" onclick="searchCategory('electric')">⚡ Elektrik</button>
+                        <button class="chip" onclick="searchCategory('plumber')">🔧 Santexnik</button>
+                        <button class="chip" onclick="searchCategory('repair')">🏠 Ta'mirchi</button>
+                        <button class="chip" onclick="searchCategory('ac')">❄️ Konditsioner</button>
+                        <button class="chip" onclick="searchCategory('lock')">🔑 Kalitchi</button>
+                        <button class="chip" onclick="searchCategory('clean')">🧹 Tozalash</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
